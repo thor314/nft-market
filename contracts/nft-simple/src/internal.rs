@@ -133,33 +133,41 @@ impl Contract {
             );
         }
 
+        // CUSTOM if they include memo assume it's FT transfer and override the receiver_id (Market)
+        // sender_id (market) is approved_id (passing above), but we want to transfer token to buyer_id
+        // using memo field to override receiver_id arg in self.internal_transfer
+        let mut receiver = receiver_id.to_string();
+        if let Some(memo) = memo {
+            receiver = memo;
+        }
+
         assert_ne!(
-            &owner_id, receiver_id,
+            &owner_id, &receiver,
             "The token owner and the receiver should be different"
         );
 
         env::log(
             format!(
                 "Transfer {} from @{} to @{}",
-                token_id, &owner_id, receiver_id
+                token_id, &owner_id, &receiver
             )
             .as_bytes(),
         );
 
         self.internal_remove_token_from_owner(&owner_id, token_id);
-        self.internal_add_token_to_owner(receiver_id, token_id);
+        self.internal_add_token_to_owner(&receiver, token_id);
 
         let token = Token {
-            owner_id: receiver_id.clone(),
+            owner_id: receiver.clone(),
             metadata,
             approved_account_ids: Default::default(),
             approval_counter,
         };
         self.tokens_by_id.insert(token_id, &token);
 
-        if let Some(memo) = memo {
-            env::log(format!("Memo: {}", memo).as_bytes());
-        }
+        // if let Some(memo) = memo {
+        //     env::log(format!("Memo: {}", memo).as_bytes());
+        // }
 
         (owner_id, approved_account_ids)
     }

@@ -2,23 +2,26 @@ use std::collections::HashMap;
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LookupMap, UnorderedMap, UnorderedSet};
-use near_sdk::json_types::{ValidAccountId, Base64VecU8, U64};
+use near_sdk::json_types::{ValidAccountId, Base64VecU8, U64, U128};
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, Promise, StorageUsage};
+use near_sdk::{env, ext_contract, near_bindgen, AccountId, Balance, Gas, PanicOnDefault, Promise, StorageUsage};
 
 use crate::internal::*;
 pub use crate::mint::*;
+pub use crate::settlement::*;
 pub use crate::nft_core::*;
 use crate::nft_metadata::{TokenMetadata, NFTMetadata};
 
 mod internal;
 mod mint;
+mod settlement;
 mod nft_core;
 mod nft_metadata;
 
 #[global_allocator]
 static ALLOC: near_sdk::wee_alloc::WeeAlloc<'_> = near_sdk::wee_alloc::WeeAlloc::INIT;
 
+const GAS_FOR_FT_TRANSFER: Gas = 25_000_000_000_000;
 pub type TokenId = String;
 
 #[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize)]
